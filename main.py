@@ -186,19 +186,64 @@ async def run_query(query: str) -> None:
                 file=sys.stderr,
             )
 
+async def run_image_query(query: str, image_path: str) -> None:
+    """Same as run_query, but attaches an actual image to the message so the
+    model can visually analyze it (not just receive a file path as text)."""
+    import mimetypes
+
+    print(f"\n[FarmAssist] Image Query: {query} (image: {image_path})\n{'─' * 60}")
+
+    try:
+        await runner.session_service.create_session(
+            app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID
+        )
+    except AlreadyExistsError:
+        pass
+
+    mime_type, _ = mimetypes.guess_type(image_path)
+    with open(image_path, "rb") as f:
+        image_bytes = f.read()
+
+    message = Content(
+        role="user",
+        parts=[
+            Part(text=query),
+            Part.from_bytes(data=image_bytes, mime_type=mime_type or "image/jpeg"),
+        ],
+    )
+
+    final_printed = False
+    try:
+        async for event in runner.run_async(
+            user_id=USER_ID, session_id=SESSION_ID, new_message=message
+        ):
+            if event.is_final_response():
+                if event.content and event.content.parts:
+                    for part in event.content.parts:
+                        if part.text:
+                            print(f"[FarmAssist Response]\n{part.text}")
+                            final_printed = True
+        if not final_printed:
+            print("[FarmAssist] No text response received from the agent.")
+    except Exception as exc:
+        print(f"\n[FarmAssist ERROR] {exc}", file=sys.stderr)
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Entry point
 # ─────────────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     async def run_conversation():
-        # First query establishes crop + location context
         await run_query(
             "I'm growing wheat in Punjab. It's been raining for 3 days. "
             "What should I do, and is now a good time to sell?"
         )
         print("\n" + "=" * 60)
-        # Second query relies on session memory to recall wheat/Punjab
         await run_query("What about now, a week later — should I check anything again?")
+        print("\n" + "=" * 60)
+        await run_image_query(
+            "Here's a photo of my wheat leaf, does it look diseased?",
+            "test_images/wheat_leaf.jpg",
+        )
 
     asyncio.run(run_conversation())
