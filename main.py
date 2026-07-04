@@ -24,7 +24,7 @@ WHY asyncio.run() here (not in the agents):
 import asyncio
 import os
 import sys
-
+from google.adk.errors.already_exists_error import AlreadyExistsError
 # ── Step 1: Load .env BEFORE importing any ADK module ────────────────────────
 # WHY first: google-adk reads GEMINI_API_KEY from os.environ at import time
 # in some internal initialisation paths.  Loading .env after the import could
@@ -116,12 +116,17 @@ async def run_query(query: str) -> None:
 
     # ── Create session ────────────────────────────────────────────────────────
     # WHY await: create_session is a coroutine in InMemorySessionService
-    await runner.session_service.create_session(
-        app_name=APP_NAME,
-        user_id=USER_ID,
-        session_id=SESSION_ID,
+    # Only create the session once — reuse it across calls so conversation
+    # history (and thus memory of crop/location) persists between queries.
+    try:
+        await runner.session_service.create_session(
+            app_name=APP_NAME,
+            user_id=USER_ID,
+            session_id=SESSION_ID,
     )
-
+    except AlreadyExistsError:
+        pass  # session already exists — expected on 2nd+ call in same conversation
+    
     # ── Build the message ─────────────────────────────────────────────────────
     # WHY Content(role="user", ...): ADK requires a google.genai.types.Content
     # object for new_message.  role="user" marks it as the human turn.
@@ -181,16 +186,19 @@ async def run_query(query: str) -> None:
                 file=sys.stderr,
             )
 
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Entry point
 # ─────────────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    # Phase 1 test query — matches the Definition of Done in the spec.
-    # Expected: response mentions rain delay + drainage + selling/mandi timing.
-    TEST_QUERY = (
-    "I'm growing wheat in Punjab. It's been raining for 3 days. "
-    "What should I do, and is now a good time to sell?"
-)
-    asyncio.run(run_query(TEST_QUERY))
+    async def run_conversation():
+        # First query establishes crop + location context
+        await run_query(
+            "I'm growing wheat in Punjab. It's been raining for 3 days. "
+            "What should I do, and is now a good time to sell?"
+        )
+        print("\n" + "=" * 60)
+        # Second query relies on session memory to recall wheat/Punjab
+        await run_query("What about now, a week later — should I check anything again?")
+
+    asyncio.run(run_conversation())
