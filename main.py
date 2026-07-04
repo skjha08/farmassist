@@ -25,6 +25,7 @@ import asyncio
 import os
 import sys
 from google.adk.errors.already_exists_error import AlreadyExistsError
+from security.guardrails import validate_input, validate_image_path
 # ── Step 1: Load .env BEFORE importing any ADK module ────────────────────────
 # WHY first: google-adk reads GEMINI_API_KEY from os.environ at import time
 # in some internal initialisation paths.  Loading .env after the import could
@@ -113,7 +114,10 @@ async def run_query(query: str) -> None:
         create_session(app_name, user_id, state=None, session_id=None)
     """
     print(f"\n[FarmAssist] Query: {query}\n{'─' * 60}")
-
+    is_valid, reason = validate_input(query)
+    if not is_valid:
+        print(f"[FarmAssist BLOCKED] {reason}")
+        return
     # ── Create session ────────────────────────────────────────────────────────
     # WHY await: create_session is a coroutine in InMemorySessionService
     # Only create the session once — reuse it across calls so conversation
@@ -192,7 +196,15 @@ async def run_image_query(query: str, image_path: str) -> None:
     import mimetypes
 
     print(f"\n[FarmAssist] Image Query: {query} (image: {image_path})\n{'─' * 60}")
+    is_valid, reason = validate_input(query)
+    if not is_valid:
+        print(f"[FarmAssist BLOCKED] {reason}")
+        return
 
+    is_valid, reason = validate_image_path(image_path)
+    if not is_valid:
+        print(f"[FarmAssist BLOCKED] {reason}")
+        return
     try:
         await runner.session_service.create_session(
             app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID
