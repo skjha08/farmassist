@@ -21,3 +21,6 @@ __pycache__/
 # OS artefacts
 .DS_Store
 Thumbs.db
+
+
+ci-key.json
