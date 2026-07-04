@@ -71,4 +71,30 @@ if query:
                     st.markdown(response)
                     st.session_state.history.append({"role": "assistant", "content": response})
                 except Exception as e:
-                    st.error(f"Error: {e}")
+                    err = str(e)
+                    if "429" in err or "RESOURCE_EXHAUSTED" in err or "quota" in err.lower():
+                        st.warning(
+                            "⏳ **API rate limit reached** — the free-tier Gemini quota is "
+                            "exhausted for this minute/day. Please wait 30–60 seconds and "
+                            "try again, or check quota at "
+                            "[Google AI Studio](https://aistudio.google.com/).",
+                            icon="⚠️",
+                        )
+                    elif "401" in err or "API_KEY_INVALID" in err or "UNAUTHENTICATED" in err:
+                        st.error("🔑 Authentication failed — check that GEMINI_API_KEY is set correctly in Space Secrets.")
+                    else:
+                        st.error(f"❌ Unexpected error: {e}")
+
+# ── Sidebar: model info & limits note ────────────────────────────────────────
+with st.sidebar:
+    st.markdown("### ℹ️ About FarmAssist")
+    st.markdown(
+        "Multi-agent AI advisor for Indian farmers built with "
+        "**Google ADK** + **Gemini Vision**.\n\n"
+        "**Agents:**\n"
+        "- 🌱 Crop Advisor\n"
+        "- 📈 Market Watch\n"
+        "- 🔍 Pest Scout (vision)\n\n"
+        "**Note:** Running on Gemini free tier. "
+        "If you see a rate-limit warning, wait ~60 s and retry."
+    )
