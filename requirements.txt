@@ -1,0 +1,15 @@
+# ── Core agent framework ──────────────────────────────────────────────────────
+# Pinned to exact version confirmed installed (pip show google-adk → 2.3.0).
+# Using == so CI reproduces the exact same behaviour we tested locally.
+# google-adk pulls in google-genai, pydantic, httpx, etc. transitively.
+google-adk==2.3.0
+
+# ── Environment variable loading ──────────────────────────────────────────────
+# Reads GEMINI_API_KEY from .env at startup so the key is never hardcoded
+# and is not dependent on shell session $env: variables.
+python-dotenv==1.1.1
+
+# ── Streamlit UI (Phase 5) ────────────────────────────────────────────────────
+# Pre-pinned here so future phases don't need a separate install step.
+# Version is the latest stable that google-adk's dependencies are compatible with.
+streamlit==1.45.1

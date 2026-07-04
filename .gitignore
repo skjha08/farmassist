@@ -1,0 +1,23 @@
+# Secret keys — NEVER commit
+.env
+
+# Python virtual environment
+venv/
+.venv/
+
+# Python bytecode cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Streamlit cache
+.streamlit/
+
+# IDE folders
+.idea/
+.vscode/
+
+# OS artefacts
+.DS_Store
+Thumbs.db
