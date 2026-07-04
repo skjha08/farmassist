@@ -9,7 +9,7 @@ google-adk==2.3.0
 # and is not dependent on shell session $env: variables.
 python-dotenv==1.1.1
 
-# ── Streamlit UI (Phase 5) ────────────────────────────────────────────────────
-# Pre-pinned here so future phases don't need a separate install step.
-# Version is the latest stable that google-adk's dependencies are compatible with.
-streamlit==1.45.1
+# ── Streamlit UI ──────────────────────────────────────────────────────────────
+# NOTE: streamlit is NOT pinned here because HF Spaces installs it separately
+# via sdk_version in README.md frontmatter. Pinning here causes a pip conflict.
+# Locally, streamlit is already installed in venv — no change needed for dev.
