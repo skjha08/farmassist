@@ -168,37 +168,13 @@ with col_main:
         unsafe_allow_html=True,
     )
 
-    # Agent capability cards
-    st.markdown(
-        "<div class='cards'>"
-        "<div class='card'><div class='ci'>🌱</div>"
-        "<div class='ct'>Crop Advisor</div>"
-        "<div class='cd'>Weather-aware advice on spraying, drainage &amp; field operations</div></div>"
-        "<div class='card'><div class='ci'>📈</div>"
-        "<div class='ct'>Market Watch</div>"
-        "<div class='cd'>Live mandi prices and optimal selling timing</div></div>"
-        "<div class='card'><div class='ci'>🔬</div>"
-        "<div class='ct'>Pest Scout</div>"
-        "<div class='cd'>Upload a photo — Gemini Vision identifies disease &amp; treatment</div></div>"
-        "</div>",
-        unsafe_allow_html=True,
-    )
-
     # Chat history
-    if not st.session_state.history:
-        st.markdown(
-            "<div style='text-align:center;padding:2.5rem;color:rgba(165,214,167,.35)'>"
-            "<div style='font-size:2.5rem;margin-bottom:.5rem'>💬</div>"
-            "<div style='font-size:.9rem'>Ask your first question below, or upload a crop photo to start</div>"
-            "</div>",
-            unsafe_allow_html=True,
-        )
-    else:
-        for msg in st.session_state.history:
-            av = "👨‍🌾" if msg["role"] == "user" else "🌾"
-            with st.chat_message(msg["role"], avatar=av):
-                st.markdown(msg["content"])
+    for msg in st.session_state.history:
+        av = "👨‍🌾" if msg["role"] == "user" else "🌾"
+        with st.chat_message(msg["role"], avatar=av):
+            st.markdown(msg["content"])
 
+    st.markdown("<div id='chat-end'></div>", unsafe_allow_html=True)
     st.markdown("<div class='gdiv'></div>", unsafe_allow_html=True)
 
     # Image uploader
@@ -264,4 +240,12 @@ with col_main:
                             st.error("🔑 Auth failed — check GEMINI_API_KEY in Space Secrets.")
                         else:
                             st.error(f"❌ Unexpected error: {e}")
+            # Scroll new answer into view, then rerun
+            st.markdown(
+                "<script>"
+                "var e=window.parent.document.getElementById('chat-end');"
+                "if(e){e.scrollIntoView({behavior:'smooth',block:'end'});}"
+                "</script>",
+                unsafe_allow_html=True,
+            )
             st.rerun()
