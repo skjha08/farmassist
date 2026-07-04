@@ -1,0 +1,6 @@
+test_images/
+venv/
+__pycache__/
+*.pyc
+.env
+ci-key.json
