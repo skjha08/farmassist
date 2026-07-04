@@ -190,7 +190,7 @@ if __name__ == "__main__":
     # Phase 1 test query — matches the Definition of Done in the spec.
     # Expected: response mentions rain delay + drainage + selling/mandi timing.
     TEST_QUERY = (
-        "I'm growing wheat in Punjab. It's been raining for 3 days. "
-        "What should I do?"
-    )
+    "I'm growing wheat in Punjab. It's been raining for 3 days. "
+    "What should I do, and is now a good time to sell?"
+)
     asyncio.run(run_query(TEST_QUERY))
