@@ -13,3 +13,10 @@ python-dotenv==1.1.1
 # NOTE: streamlit is NOT pinned here because HF Spaces installs it separately
 # via sdk_version in README.md frontmatter. Pinning here causes a pip conflict.
 # Locally, streamlit is already installed in venv — no change needed for dev.
+
+# ── MCP (Model Context Protocol) server ───────────────────────────────────────
+# Exposes FarmAssist's tool functions over the MCP protocol so any
+# MCP-compatible client (Claude Desktop, ADK MCPToolset, Agents CLI) can call
+# them independently of the internal multi-agent architecture.
+mcp>=1.0.0
+
