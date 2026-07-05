@@ -1,7 +1,34 @@
+"""
+app.py
+======
+Streamlit web UI for FarmAssist — the primary user-facing interface.
+
+HOW IT RELATES TO THE REST OF THE PROJECT:
+  main.py       → CLI entrypoint, good for demos and testing in the terminal
+  app.py  (this) → Streamlit UI, the deployable product (HF Spaces)
+  Both share the same orchestrator_agent and session lifecycle pattern.
+
+SESSION LIFECYCLE (same as main.py):
+  1. InMemoryRunner is created once per browser session and stored in
+     st.session_state so it persists across Streamlit reruns.
+  2. A named session is created on first message (AlreadyExistsError handled
+     for subsequent reruns).
+  3. run_async() is driven with asyncio.run() — Streamlit is synchronous so
+     we bridge into async with a fresh event loop per query.
+
+WHY st.session_state for the runner (not a module-level global):
+  Streamlit runs the full script on every interaction.  Module-level globals
+  reset between users in multi-user deployments.  session_state is scoped
+  per browser tab / user session — the correct granularity for a chat app.
+"""
+
 import streamlit as st
 import asyncio
 import os
 from dotenv import load_dotenv
+
+# load_dotenv() is a no-op when no .env file exists (safe in HF Spaces where
+# secrets are injected as real environment variables, not via a .env file).
 load_dotenv()
 
 from google.genai.types import Content, Part
@@ -9,6 +36,7 @@ from google.adk.runners import InMemoryRunner
 from google.adk.errors.already_exists_error import AlreadyExistsError
 from agents.orchestrator import orchestrator_agent
 from security.guardrails import validate_input
+
 
 st.set_page_config(
     page_title="FarmAssist — AI Farm Advisor",
